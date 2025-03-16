@@ -29,8 +29,6 @@ namespace Cubed {
 		s_ScratchBuffer.Allocate(10 * 1024 * 1024); // 10 MB
 
 		m_Client.SetDataReceivedCallback([this](const Walnut::Buffer buffer) { OnDataReceived(buffer); });
-
-		m_Renderer.Init();
 	}
 
 	void ClientLayer::OnDetach()
@@ -76,19 +74,13 @@ namespace Cubed {
 
 	}
 
-	void ClientLayer::OnRender()
+	void ClientLayer::OnUIRender()
 	{
-		// Let's draw some stuff here
-
-		// 1. bind pipeline
-		// 2. bind vertex/index buffers
-		// 3. draw call
-
 		Walnut::Client::ConnectionStatus connectionStatus = m_Client.GetConnectionStatus();
 		if (connectionStatus == Walnut::Client::ConnectionStatus::Connected)
 		{
 			// play game
-			m_Renderer.RenderCube(glm::vec3(m_PlayerPosition.x, 0.5f, m_PlayerPosition.y));
+			DrawRect(m_PlayerPosition, { 50.0f, 50.0f }, 0xffff00ff);
 
 			m_PlayerDataMutex.lock();
 			std::map<uint32_t, PlayerData> playerData = m_PlayerData;
@@ -99,33 +91,7 @@ namespace Cubed {
 				if (id == m_PlayerID)
 					continue;
 
-				m_Renderer.RenderCube(glm::vec3(data.Position.x, 0.5f, data.Position.y));
-			}
-		}
-
-	}
-
-	void ClientLayer::OnUIRender()
-	{
-		Walnut::Client::ConnectionStatus connectionStatus = m_Client.GetConnectionStatus();
-		if (connectionStatus == Walnut::Client::ConnectionStatus::Connected)
-		{
-			if (false)
-			{
-				// play game
-				DrawRect(m_PlayerPosition, { 50.0f, 50.0f }, 0xffff00ff);
-
-				m_PlayerDataMutex.lock();
-				std::map<uint32_t, PlayerData> playerData = m_PlayerData;
-				m_PlayerDataMutex.unlock();
-
-				for (const auto& [id, data] : playerData)
-				{
-					if (id == m_PlayerID)
-						continue;
-
-					DrawRect(data.Position, { 50.0f, 50.0f }, 0xff00ff00);
-				}
+				DrawRect(data.Position, { 50.0f, 50.0f }, 0xff00ff00);
 			}
 		}
 		else
@@ -147,7 +113,6 @@ namespace Cubed {
 
 		ImGui::ShowDemoWindow();
 
-		m_Renderer.RenderUI();
 	}
 
 	void ClientLayer::OnDataReceived(const Walnut::Buffer buffer)
